@@ -13,7 +13,7 @@ app.use(
 //encryption key
 app.use(cookieSession({ keys: ["adgfythjhkkjhmljkfghhjhfdy"] }));
 
-app.get("/", (req, res) => {
+app.get("/signup", (req, res) => {
 	res.send(`
         <div>
         <p>Your ID is: ${req.session.userID}</p>
@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
     `);
 });
 
-app.post("/", async (req, res) => {
+app.post("/signup", async (req, res) => {
 	const { email, password, passwordConfirmation } = req.body;
 
 	//check if email has already been used
@@ -54,6 +54,52 @@ app.post("/", async (req, res) => {
 	req.session.userID = user.id;
 
 	res.send("Account created");
+});
+
+//signout
+app.get("/signout", (req, res) => {
+	req.session = null;
+	res.send("Successfully logged out");
+});
+
+//signup
+app.get("/signin", (req, res) => {
+	res.send(`
+        <div>
+            <form method="POST">
+                <input placeholder="email" name="email"/>
+                <input placeholder="password" name="password"/>
+                <button>Sign In</button>
+            </form>
+        </div>
+    
+    `);
+});
+
+//deap with signin
+app.post("/signin", async (req, res) => {
+	//check someone has signed up already with email
+	const { email, password } = req.body;
+
+	const user = await usersRepo.getOneBy({ email: email });
+
+	if (!user) {
+		return res.send("Email not found");
+	}
+
+	const validPassword = await usersRepo.comparePasswords(
+		user.password,
+		password
+	);
+	//check password
+	if (!validPassword) {
+		return res.send("Invalid password");
+	}
+
+	//set user
+	req.session.userID = user.id;
+
+	res.send("You have successfully signed up");
 });
 
 //listen for network requests(on port 3000)
