@@ -1,16 +1,22 @@
 const express = require("express");
-const bodyParser = require("body-parser")
-const usersRepo = require("./repositories/users")
+const bodyParser = require("body-parser");
+const cookieSession = require("cookie-session");
+const usersRepo = require("./repositories/users");
 
 const app = express();
 
-app.use(bodyParser.urlencoded({
-    extended: true
-}))
+app.use(
+	bodyParser.urlencoded({
+		extended: true,
+	})
+);
+//encryption key
+app.use(cookieSession({ keys: ["adgfythjhkkjhmljkfghhjhfdy"] }));
 
 app.get("/", (req, res) => {
-    res.send(`
+	res.send(`
         <div>
+        <p>Your ID is: ${req.session.userID}</p>
             <form method="POST">
                 <input placeholder="email" name="email"/>
                 <input placeholder="password" name="password"/>
@@ -21,33 +27,36 @@ app.get("/", (req, res) => {
     `);
 });
 
-
-
 app.post("/", async (req, res) => {
-    const {
-        email,
-        password,
-        passwordConfirmation
-    } = req.body;
+	const { email, password, passwordConfirmation } = req.body;
 
-    //check if email has already been used
-    const exsistingUser = await usersRepo.getOneBy({
-        email: email
-    })
-    if (exsistingUser) {
-        return res.send("email already in use")
-    }
+	//check if email has already been used
+	const exsistingUser = await usersRepo.getOneBy({
+		email: email,
+	});
+	if (exsistingUser) {
+		return res.send("email already in use");
+	}
 
-    //check password and password confirmation is the same
-    if (password !== passwordConfirmation) {
-        return res.send("passwords must match")
-    }
+	//check password and password confirmation is the same
+	if (password !== passwordConfirmation) {
+		return res.send("passwords must match");
+	}
 
-    res.send("Account created")
+	//create a user in our repo for person
+	const user = await usersRepo.create({
+		email: email,
+		password: password,
+	});
 
+	//store the ID of user inside cookie
+	//added by cookie session library
+	req.session.userID = user.id;
+
+	res.send("Account created");
 });
 
 //listen for network requests(on port 3000)
 app.listen(3000, () => {
-    console.log("listening");
+	console.log("listening");
 });
