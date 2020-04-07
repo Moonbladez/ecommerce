@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser")
+const usersRepo = require("./repositories/users")
 
 const app = express();
 
@@ -22,10 +23,28 @@ app.get("/", (req, res) => {
 
 
 
-app.post("/", (req, res) => {
-    console.log(req.body)
-    //get access to email, pw
-    res.send("Account Created");
+app.post("/", async (req, res) => {
+    const {
+        email,
+        password,
+        passwordConfirmation
+    } = req.body;
+
+    //check if email has already been used
+    const exsistingUser = await usersRepo.getOneBy({
+        email: email
+    })
+    if (exsistingUser) {
+        return res.send("email already in use")
+    }
+
+    //check password and password confirmation is the same
+    if (password !== passwordConfirmation) {
+        return res.send("passwords must match")
+    }
+
+    res.send("Account created")
+
 });
 
 //listen for network requests(on port 3000)
