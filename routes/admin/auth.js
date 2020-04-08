@@ -1,49 +1,88 @@
-const express = require("express")
+const express = require("express");
+const {
+    check,
+    validationResult
+} = require("express-validator");
 
 const usersRepo = require("../../repositories/users");
-const signupTemplate = require("../../views/admin/auth/signup")
-const signinTemplate = require("../../views/admin/auth/signin")
+
+const signupTemplate = require("../../views/admin/auth/signup");
+const signinTemplate = require("../../views/admin/auth/signin");
+
 const router = express.Router();
 
-
 router.get("/signup", (req, res) => {
-    res.send(signupTemplate({
-        req: req
-    }));
+    res.send(
+        signupTemplate({
+            req: req,
+        })
+    );
 });
 
-router.post("/signup", async (req, res) => {
-    const {
-        email,
-        password,
-        passwordConfirmation
-    } = req.body;
+router.post(
+    "/signup",
+    [
+        //email validation
+        check("email")
+        .trim()
+        .normalizeEmail()
+        .isEmail()
+        .withMessage("must be a valid email address")
+        .custom(async (email) => {
+            const exsistingUser = await usersRepo.getOneBy({
+                email
+            });
+            if (exsistingUser) {
+                throw new Error("email in use")
+            }
+        }),
 
-    //check if email has already been used
-    const exsistingUser = await usersRepo.getOneBy({
-        email: email,
-    });
-    if (exsistingUser) {
-        return res.send("email already in use");
+        //password validation
+        check("password")
+        .trim()
+        .isLength({
+            min: 4,
+            max: 20
+        })
+        .withMessage("Must be between 4 and 20 characters"),
+
+        //password matches
+        check("passwordConfirmation")
+        .trim()
+        .isLength({
+            min: 4,
+            max: 20
+        })
+        .withMessage("Must be between 4 and 40 characters")
+    ],
+
+
+
+
+
+    async (req, res) => {
+        const errors = validationResult(req);
+        console.log(errors);
+        const {
+            email,
+            password,
+            passwordConfirmation
+        } = req.body;
+
+
+        //create a user in our repo for person
+        const user = await usersRepo.create({
+            email: email,
+            password: password,
+        });
+
+        //store the ID of user inside cookie
+        //added by cookie session library
+        req.session.userID = user.id;
+
+        res.send("Account created");
     }
-
-    //check password and password confirmation is the same
-    if (password !== passwordConfirmation) {
-        return res.send("passwords must match");
-    }
-
-    //create a user in our repo for person
-    const user = await usersRepo.create({
-        email: email,
-        password: password,
-    });
-
-    //store the ID of user inside cookie
-    //added by cookie session library
-    req.session.userID = user.id;
-
-    res.send("Account created");
-});
+);
 
 //signout
 router.get("/signout", (req, res) => {
@@ -65,7 +104,7 @@ router.post("/signin", async (req, res) => {
     } = req.body;
 
     const user = await usersRepo.getOneBy({
-        email: email
+        email: email,
     });
 
     if (!user) {

@@ -1,7 +1,5 @@
-[
-  {
-    "email": "test@test.com",
-    "password": "b454d4949e3321f9a2a07ee5204d2ec5952f94513f329375ca69fc4c0135122c01a759c793ffb12b73f8b5f7efda9624c9da5ccd670a908969b151fb15ecbcdb.62c881a9bfa6d2f6",
-    "id": "27423162"
-  }
-]
+[{
+  "email": "test@test.com",
+  "password": "b454d4949e3321f9a2a07ee5204d2ec5952f94513f329375ca69fc4c0135122c01a759c793ffb12b73f8b5f7efda9624c9da5ccd670a908969b151fb15ecbcdb.62c881a9bfa6d2f6",
+  "id": "27423162"
+}]
