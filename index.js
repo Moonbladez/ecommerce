@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const authRouter = require("./routes/admin/auth")
+const productsRouter = require("./routes/admin/products")
 
 const app = express();
 
@@ -19,6 +20,8 @@ app.use(cookieSession({
 }));
 
 app.use(authRouter)
+//products router
+app.use(productsRouter)
 
 
 //listen for network requests(on port 3000)

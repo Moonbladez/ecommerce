@@ -85,4 +85,23 @@ module.exports = {
                 throw new Error("Invalid password");
             }
         }),
+
+    //product validation
+    requireTitle: check("title")
+        .trim()
+        .isLength({
+            min: 5,
+            max: 30
+        })
+        .withMessage("MNust be between 5 and 30 characters"),
+
+    requirePrice: check("price")
+        .trim()
+        //string to Float
+        .toFloat()
+        //minimum price of 1
+        .isFloat({
+            min: 1
+        })
+        .withMessage("must be a price greater than 1")
 };
