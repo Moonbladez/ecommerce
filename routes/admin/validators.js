@@ -41,6 +41,8 @@ module.exports = {
         }) => {
             if (passwordConfirmation !== req.body.password) {
                 throw new Error("passwords must match");
+            } else {
+                return true;
             }
         }),
 
