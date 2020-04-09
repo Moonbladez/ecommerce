@@ -9,66 +9,44 @@ const usersRepo = require("../../repositories/users");
 const signupTemplate = require("../../views/admin/auth/signup");
 const signinTemplate = require("../../views/admin/auth/signin");
 
+const {
+    requireEmail,
+    requirePassword,
+    requirePasswordConfirmation,
+    requireEmailExsists,
+    requireValidPasswordForUser
+} = require("./validators");
+
 const router = express.Router();
 
 router.get("/signup", (req, res) => {
     res.send(
         signupTemplate({
-            req: req,
-        })
-    );
+            req
+        }));
 });
 
 router.post(
     "/signup",
-    [
-        //email validation
-        check("email")
-        .trim()
-        .normalizeEmail()
-        .isEmail()
-        .withMessage("must be a valid email address")
-        .custom(async (email) => {
-            const exsistingUser = await usersRepo.getOneBy({
-                email
-            });
-            if (exsistingUser) {
-                throw new Error("email in use")
-            }
-        }),
-
-        //password validation
-        check("password")
-        .trim()
-        .isLength({
-            min: 4,
-            max: 20
-        })
-        .withMessage("Must be between 4 and 20 characters"),
-
-        //password matches
-        check("passwordConfirmation")
-        .trim()
-        .isLength({
-            min: 4,
-            max: 20
-        })
-        .withMessage("Must be between 4 and 40 characters")
-    ],
-
-
-
-
+    [requireEmail, requirePassword, requirePasswordConfirmation],
 
     async (req, res) => {
         const errors = validationResult(req);
-        console.log(errors);
+
+        if (!errors.isEmpty()) {
+            return res.send(
+                signupTemplate({
+                    req,
+                    errors,
+                })
+            );
+        }
+
         const {
             email,
             password,
             passwordConfirmation
         } = req.body;
-
 
         //create a user in our repo for person
         const user = await usersRepo.create({
@@ -92,38 +70,35 @@ router.get("/signout", (req, res) => {
 
 //signup
 router.get("/signin", (req, res) => {
-    res.send(signinTemplate());
+    res.send(signinTemplate({}));
 });
 
-//deap with signin
-router.post("/signin", async (req, res) => {
-    //check someone has signed up already with email
-    const {
-        email,
-        password
-    } = req.body;
+//with signin
+router.post(
+    "/signin",
+    [requireEmailExsists, requireValidPasswordForUser],
+    async (req, res) => {
+        const errors = validationResult(req);
+        //if errors is not empty, throw template with errors included
+        if (!errors.isEmpty()) {
+            return res.send(signinTemplate({
+                errors
+            }))
+        }
+        //check someone has signed up already with email
+        const {
+            email
+        } = req.body;
 
-    const user = await usersRepo.getOneBy({
-        email: email,
-    });
+        const user = await usersRepo.getOneBy({
+            email: email,
+        });
 
-    if (!user) {
-        return res.send("Email not found");
+        //set user
+        req.session.userID = user.id;
+
+        res.send("You have successfully signed up");
     }
-
-    const validPassword = await usersRepo.comparePasswords(
-        user.password,
-        password
-    );
-    //check password
-    if (!validPassword) {
-        return res.send("Invalid password");
-    }
-
-    //set user
-    req.session.userID = user.id;
-
-    res.send("You have successfully signed up");
-});
+);
 
 module.exports = router;
