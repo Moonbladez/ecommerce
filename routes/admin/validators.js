@@ -93,7 +93,7 @@ module.exports = {
             min: 5,
             max: 30
         })
-        .withMessage("MNust be between 5 and 30 characters"),
+        .withMessage("Must be between 5 and 30 characters"),
 
     requirePrice: check("price")
         .trim()
@@ -103,5 +103,5 @@ module.exports = {
         .isFloat({
             min: 1
         })
-        .withMessage("must be a price greater than 1")
+        .withMessage("Must be a price greater than 1")
 };
