@@ -12,7 +12,7 @@ const {
     requireEmail,
     requirePassword,
     requirePasswordConfirmation,
-    requireEmailExsists,
+    requireEmailExists,
     requireValidPasswordForUser
 } = require("./validators");
 
@@ -45,7 +45,7 @@ router.post(
         //added by cookie session library
         req.session.userID = user.id;
 
-        res.send("Account created");
+        res.redirect("/admin/products");
     }
 );
 
@@ -63,7 +63,7 @@ router.get("/signin", (req, res) => {
 //with signin
 router.post(
     "/signin",
-    [requireEmailExsists, requireValidPasswordForUser],
+    [requireEmailExists, requireValidPasswordForUser],
     handleErrors(signinTemplate),
     async (req, res) => {
         const {
@@ -77,7 +77,7 @@ router.post(
         //set user
         req.session.userID = user.id;
 
-        res.send("You have successfully signed up");
+        res.redirect("/admin/products");
     }
 );
 

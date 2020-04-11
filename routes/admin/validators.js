@@ -47,7 +47,7 @@ module.exports = {
         }),
 
     //email
-    requireEmailExsists: check("email")
+    requireEmailExists: check("email")
         .trim()
         .normalizeEmail()
         .isEmail()
@@ -62,14 +62,13 @@ module.exports = {
         }),
 
     //password for signin
-
     requireValidPasswordForUser: check("password")
         .trim()
         .custom(async (password, {
             req
         }) => {
             const user = await usersRepo.getOneBy({
-                email: req.body.email,
+                email: req.body.email
             });
             if (!user) {
                 throw new Error("Invalid password");
